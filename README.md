@@ -19,7 +19,10 @@ public class HealthBarSystem : UpdateSystem {
     private SystemStateProcessor<HealthBarSystemStateComponent> heroProcessor;
 
     public override void OnAwake() {
-        heroProcessor = World.Filter.With<HeroComponent>().With<HeroDamagedMarker>().Without<HeroDeadMarker>()
+        heroProcessor = World.Filter
+            .With<HeroComponent>()
+            .With<HeroDamagedMarker>()
+            .Without<HeroDeadMarker>()
             .ToSystemStateProcessor(CreateHealthBarForHero, RemoveHealthBarForHero);
     }
 
@@ -48,12 +51,12 @@ public class HealthBarSystem : UpdateSystem {
 }
 
 public class DestroySystem : UpdateSystem {
-    private Filter _toDestroyFilter;
+    private Filter toDestroyFilter;
 
     public override void OnAwake() { }
 
     public override void OnUpdate(float deltaTime) {
-        foreach (var entity in _toDestroyFilter) {
+        foreach (var entity in toDestroyFilter) {
             // MigrateSystemStateComponents must be called before each RemoveEntity
             World.MigrateSystemStateComponents(entity);
             World.RemoveEntity(entity);
