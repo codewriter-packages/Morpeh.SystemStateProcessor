@@ -49,20 +49,6 @@ public class HealthBarSystem : UpdateSystem {
         public GameObject healthBar;
     }
 }
-
-public class DestroySystem : UpdateSystem {
-    private Filter toDestroyFilter;
-
-    public override void OnAwake() { }
-
-    public override void OnUpdate(float deltaTime) {
-        foreach (var entity in toDestroyFilter) {
-            // MigrateSystemStateComponents must be called before each RemoveEntity
-            World.MigrateSystemStateComponents(entity);
-            World.RemoveEntity(entity);
-        }
-    }
-}
 ```
 
 ## License

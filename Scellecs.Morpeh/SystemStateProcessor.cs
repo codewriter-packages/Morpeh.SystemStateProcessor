@@ -1,86 +1,79 @@
+using System;
+using JetBrains.Annotations;
+
 namespace Scellecs.Morpeh
 {
-    using System;
-    using JetBrains.Annotations;
-    using UnityEngine;
-
-    public readonly struct SystemStateProcessor<TSystemStateComponent>
+    public class SystemStateProcessor<TSystemStateComponent>
         where TSystemStateComponent : struct, ISystemStateComponent
     {
-        private readonly CreateDelegate _onAdd;
-        private readonly RemoveDelegate _onRemove;
+        internal readonly SetupDelegate setupDelegate;
+        internal readonly World world;
 
-        private readonly Filter _entitiesWithoutStateFilter;
-        private readonly Filter _stateOnlyFilterFilter;
+        internal readonly Filter entitiesWithoutStateFilter;
+        internal readonly Filter stateOnlyFilterFilter;
 
-        private readonly Stash<TSystemStateComponent> _stateStash;
-        private readonly Stash<Info<TSystemStateComponent>> _infoStash;
+        internal readonly Stash<TSystemStateComponent> stateStash;
+        internal readonly Stash<Info> infoStash;
 
-        public Filter Entities { get; }
+        internal int frame;
 
-        internal SystemStateProcessor(
-            Filter filter,
-            CreateDelegate onAdd,
-            RemoveDelegate onRemove = null)
+        public readonly Filter Entities;
+
+        internal SystemStateProcessor(Filter filter, SetupDelegate setup)
         {
             Entities = filter;
 
-            _onAdd = onAdd;
-            _onRemove = onRemove ?? delegate { };
+            setupDelegate = setup;
+            world = filter.world;
 
-            _entitiesWithoutStateFilter = Entities.Without<TSystemStateComponent>();
-            _stateOnlyFilterFilter = Entities.world.Filter.With<TSystemStateComponent>();
+            entitiesWithoutStateFilter = Entities.Without<TSystemStateComponent>();
+            stateOnlyFilterFilter = world.Filter.With<TSystemStateComponent>();
 
-            _stateStash = Entities.world.GetStash<TSystemStateComponent>();
-            _infoStash = Entities.world.GetStash<Info<TSystemStateComponent>>();
+            stateStash = world.GetStash<TSystemStateComponent>();
+            infoStash = world.GetStash<Info>();
         }
 
         [PublicAPI]
         public void Process()
         {
-            var currentFrame = Time.frameCount;
+            var currentFrame = ++frame;
 
             foreach (var entity in Entities)
             {
-                _infoStash.Set(entity, new Info<TSystemStateComponent>
+                infoStash.Set(entity, new Info
                 {
-                    frame = currentFrame,
+                    frame = currentFrame
                 });
             }
 
-            foreach (var entity in _entitiesWithoutStateFilter)
+            foreach (var entity in entitiesWithoutStateFilter)
             {
-                _stateStash.Set(entity, _onAdd.Invoke(entity));
+                var state = setupDelegate.Invoke(entity);
+                stateStash.Set(entity, state);
             }
 
-            foreach (var entity in _stateOnlyFilterFilter)
+            foreach (var entity in stateOnlyFilterFilter)
             {
-                var lastFrame = _infoStash.Get(entity, out var exists).frame;
+                var lastFrame = infoStash.Get(entity, out var exists).frame;
 
                 if (exists && lastFrame == currentFrame)
                 {
                     continue;
                 }
 
-                ref var state = ref _stateStash.Get(entity);
-
-                _onRemove.Invoke(ref state);
-
-                _stateStash.Remove(entity);
-                _infoStash.Remove(entity);
+                infoStash.Remove(entity);
+                stateStash.Remove(entity);
             }
 
-            Entities.world.Commit();
+            world.Commit();
         }
 
-        public delegate TSystemStateComponent CreateDelegate(Entity entity);
+        public delegate TSystemStateComponent SetupDelegate(Entity entity);
 
-        public delegate void RemoveDelegate(ref TSystemStateComponent data);
-
+        public delegate void DisposeDelegate(ref TSystemStateComponent data);
 
         [Serializable]
-        internal struct Info<TSystemState> : IComponent
-            where TSystemState : struct, ISystemStateComponent
+        internal struct Info : IComponent
         {
             public int frame;
         }
