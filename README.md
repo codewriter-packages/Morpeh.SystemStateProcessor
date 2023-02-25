@@ -26,6 +26,10 @@ public class HealthBarSystem : UpdateSystem {
             .ToSystemStateProcessor(CreateHealthBarForHero, RemoveHealthBarForHero);
     }
 
+    public override void Dispose() {
+        heroProcessor.Dispose();
+    }
+
     public override void OnUpdate(float deltaTime) {
         heroProcessor.Process();
     }
@@ -47,20 +51,6 @@ public class HealthBarSystem : UpdateSystem {
     [Serializable]
     private struct HealthBarSystemStateComponent : ISystemStateComponent {
         public GameObject healthBar;
-    }
-}
-
-public class DestroySystem : UpdateSystem {
-    private Filter toDestroyFilter;
-
-    public override void OnAwake() { }
-
-    public override void OnUpdate(float deltaTime) {
-        foreach (var entity in toDestroyFilter) {
-            // MigrateSystemStateComponents must be called before each RemoveEntity
-            World.MigrateSystemStateComponents(entity);
-            World.RemoveEntity(entity);
-        }
     }
 }
 ```

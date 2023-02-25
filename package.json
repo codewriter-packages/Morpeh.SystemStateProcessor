@@ -2,7 +2,7 @@
   "name": "com.codewriter.morpeh.systemstateprocessor",
   "displayName": "Morpeh.SystemStateProcessor",
   "description": "Reactivity for Morpeh ECS",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "unity": "2021.3",
   "license": "MIT",
   "author": "CodeWriter (https://github.com/orgs/codewriter-packages)",

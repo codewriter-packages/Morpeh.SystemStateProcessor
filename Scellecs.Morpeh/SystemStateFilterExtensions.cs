@@ -7,11 +7,13 @@ namespace Scellecs.Morpeh
         [PublicAPI]
         public static SystemStateProcessor<TSystemStateComponent> ToSystemStateProcessor<TSystemStateComponent>(
             this Filter filter,
-            SystemStateProcessor<TSystemStateComponent>.CreateDelegate onAdd,
-            SystemStateProcessor<TSystemStateComponent>.RemoveDelegate onRemove = null)
+            SystemStateProcessor<TSystemStateComponent>.SetupDelegate setup,
+            SystemStateProcessor<TSystemStateComponent>.DisposeDelegate dispose = null)
             where TSystemStateComponent : struct, ISystemStateComponent
         {
-            return new(filter, onAdd, onRemove);
+            return dispose != null
+                ? new DisposableSystemStateProcessor<TSystemStateComponent>(filter, setup, dispose)
+                : new SystemStateProcessor<TSystemStateComponent>(filter, setup);
         }
     }
 }
