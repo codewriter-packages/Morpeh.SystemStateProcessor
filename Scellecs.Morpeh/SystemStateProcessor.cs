@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Scellecs.Morpeh
 {
-    public class SystemStateProcessor<TSystemStateComponent>
+    public class SystemStateProcessor<TSystemStateComponent> : IDisposable
         where TSystemStateComponent : struct, ISystemStateComponent
     {
         internal readonly SetupDelegate setupDelegate;
@@ -31,6 +31,10 @@ namespace Scellecs.Morpeh
 
             stateStash = world.GetStash<TSystemStateComponent>();
             infoStash = world.GetStash<Info>();
+        }
+
+        public virtual void Dispose()
+        {
         }
 
         [PublicAPI]

@@ -26,6 +26,10 @@ public class HealthBarSystem : UpdateSystem {
             .ToSystemStateProcessor(CreateHealthBarForHero, RemoveHealthBarForHero);
     }
 
+    public override void Dispose() {
+        heroProcessor.Dispose();
+    }
+
     public override void OnUpdate(float deltaTime) {
         heroProcessor.Process();
     }

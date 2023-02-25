@@ -39,6 +39,24 @@ namespace Scellecs.Morpeh.Tests
         }
 
         [Test]
+        public void DisposableStateProcessorCleanupEnvOnDispose()
+        {
+            var p1 = _world.Filter
+                .With<TestComponent>()
+                .ToSystemStateProcessor(NoInit<TestStateComponent>, NoCleanup);
+
+            p1.Dispose();
+
+            var p2 = _world.Filter
+                .With<TestComponent>()
+                .ToSystemStateProcessor(NoInit<TestStateComponent>, NoCleanup);
+
+            p2.Dispose();
+
+            Assert.Pass();
+        }
+
+        [Test]
         public void DisallowDisposableStateComponent()
         {
             var ex = Assert.Catch<Exception>(() =>

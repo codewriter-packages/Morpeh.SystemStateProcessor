@@ -24,5 +24,12 @@ namespace Scellecs.Morpeh
 
             stateStash.componentDispose = (ref TSystemStateComponent component) => dispose.Invoke(ref component);
         }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            stateStash.componentDispose = null;
+        }
     }
 }
