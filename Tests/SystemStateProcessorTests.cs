@@ -1,5 +1,7 @@
 using System;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Scellecs.Morpeh.Tests
 {
@@ -143,6 +145,26 @@ namespace Scellecs.Morpeh.Tests
             testEntity.Dispose();
 
             Assert.AreEqual(1, cleanNum);
+        }
+
+        [Test]
+        public void StateComponentDestroyAfterStateProcessorDispose()
+        {
+            var processor = _world.Filter
+                .With<TestComponent>()
+                .ToSystemStateProcessor(NoInit<TestStateComponent>, NoCleanup);
+
+            var testEntity = _world.CreateEntity();
+            testEntity.AddComponent<TestComponent>();
+
+            _world.Commit();
+            processor.Process();
+            processor.Dispose();
+
+            testEntity.Dispose();
+
+            LogAssert.Expect(LogType.Error,
+                "SystemStateComponent TestStateComponent was destroyed after SystemStateProcessor disposing");
         }
 
         private static T NoInit<T>(Entity entity) where T : struct

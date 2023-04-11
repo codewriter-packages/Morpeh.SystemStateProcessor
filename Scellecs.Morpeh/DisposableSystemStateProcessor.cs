@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Scellecs.Morpeh
 {
@@ -6,6 +7,9 @@ namespace Scellecs.Morpeh
         : SystemStateProcessor<TSystemStateComponent>
         where TSystemStateComponent : struct, ISystemStateComponent
     {
+        private static readonly Stash<TSystemStateComponent>.ComponentDispose InvalidDisposer
+            = LogInvalidSystemStateDispose;
+
         internal DisposableSystemStateProcessor(Filter filter, SetupDelegate setup, DisposeDelegate dispose)
             : base(filter, setup)
         {
@@ -15,7 +19,7 @@ namespace Scellecs.Morpeh
                 throw new Exception($"{tName} cannot be IDisposable");
             }
 
-            if (stateStash.componentDispose != null)
+            if (stateStash.componentDispose != null && stateStash.componentDispose != InvalidDisposer)
             {
                 var tName = typeof(TSystemStateComponent).Name;
                 throw new Exception(
@@ -29,7 +33,13 @@ namespace Scellecs.Morpeh
         {
             base.Dispose();
 
-            stateStash.componentDispose = null;
+            stateStash.componentDispose = InvalidDisposer;
+        }
+
+        private static void LogInvalidSystemStateDispose(ref TSystemStateComponent component)
+        {
+            Debug.LogError($"SystemStateComponent {typeof(TSystemStateComponent).Name} was destroyed " +
+                           $"after SystemStateProcessor disposing");
         }
     }
 }
