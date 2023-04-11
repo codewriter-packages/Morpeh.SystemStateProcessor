@@ -148,7 +148,27 @@ namespace Scellecs.Morpeh.Tests
         }
 
         [Test]
-        public void StateComponentDestroyAfterStateProcessorDispose()
+        public void StateComponentDestroyBeforeStateProcessorDispose_Valid()
+        {
+            var processor = _world.Filter
+                .With<TestComponent>()
+                .ToSystemStateProcessor(NoInit<TestStateComponent>, NoCleanup);
+
+            var testEntity = _world.CreateEntity();
+            testEntity.AddComponent<TestComponent>();
+
+            _world.Commit();
+            processor.Process();
+
+            testEntity.Dispose();
+
+            processor.Dispose();
+
+            Assert.Pass();
+        }
+
+        [Test]
+        public void StateComponentDestroyAfterStateProcessorDispose_Invalid()
         {
             var processor = _world.Filter
                 .With<TestComponent>()
