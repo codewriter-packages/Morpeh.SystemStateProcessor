@@ -6,12 +6,12 @@ namespace Scellecs.Morpeh
     {
         [PublicAPI]
         public static SystemStateProcessor<TSystemStateComponent> ToSystemStateProcessor<TSystemStateComponent>(
-            this Filter filter,
-            SystemStateProcessor<TSystemStateComponent>.CreateDelegate onAdd,
-            SystemStateProcessor<TSystemStateComponent>.RemoveDelegate onRemove = null)
+            this FilterBuilder filter,
+            SystemStateProcessor<TSystemStateComponent>.SetupDelegate setup,
+            SystemStateProcessor<TSystemStateComponent>.DisposeDelegate dispose = null)
             where TSystemStateComponent : struct, ISystemStateComponent
         {
-            return new(filter, onAdd, onRemove);
+            return new SystemStateProcessor<TSystemStateComponent>(filter, setup, dispose);
         }
     }
 }
