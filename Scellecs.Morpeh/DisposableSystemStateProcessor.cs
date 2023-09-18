@@ -10,7 +10,7 @@ namespace Scellecs.Morpeh
         private static readonly Stash<TSystemStateComponent>.ComponentDispose InvalidDisposer
             = LogInvalidSystemStateDispose;
 
-        internal DisposableSystemStateProcessor(Filter filter, SetupDelegate setup, DisposeDelegate dispose)
+        internal DisposableSystemStateProcessor(FilterBuilder filter, SetupDelegate setup, DisposeDelegate dispose)
             : base(filter, setup)
         {
             if (typeof(IDisposable).IsAssignableFrom(typeof(TSystemStateComponent)))

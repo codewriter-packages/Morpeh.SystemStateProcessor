@@ -19,15 +19,15 @@ namespace Scellecs.Morpeh
 
         public readonly Filter Entities;
 
-        internal SystemStateProcessor(Filter filter, SetupDelegate setup)
+        internal SystemStateProcessor(FilterBuilder filter, SetupDelegate setup)
         {
-            Entities = filter;
+            Entities = filter.Build();
 
             setupDelegate = setup;
             world = filter.world;
 
-            entitiesWithoutStateFilter = Entities.Without<TSystemStateComponent>();
-            stateOnlyFilterFilter = world.Filter.With<TSystemStateComponent>();
+            entitiesWithoutStateFilter = filter.Without<TSystemStateComponent>().Build();
+            stateOnlyFilterFilter = world.Filter.With<TSystemStateComponent>().Build();
 
             stateStash = world.GetStash<TSystemStateComponent>();
             infoStash = world.GetStash<Info>();

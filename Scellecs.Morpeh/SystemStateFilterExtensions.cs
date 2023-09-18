@@ -6,7 +6,7 @@ namespace Scellecs.Morpeh
     {
         [PublicAPI]
         public static SystemStateProcessor<TSystemStateComponent> ToSystemStateProcessor<TSystemStateComponent>(
-            this Filter filter,
+            this FilterBuilder filter,
             SystemStateProcessor<TSystemStateComponent>.SetupDelegate setup,
             SystemStateProcessor<TSystemStateComponent>.DisposeDelegate dispose = null)
             where TSystemStateComponent : struct, ISystemStateComponent
