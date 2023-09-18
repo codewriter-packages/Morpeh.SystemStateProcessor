@@ -35,6 +35,7 @@ namespace Scellecs.Morpeh
 
         public virtual void Dispose()
         {
+            DestroyAllStates();
         }
 
         [PublicAPI]
@@ -65,6 +66,23 @@ namespace Scellecs.Morpeh
                     continue;
                 }
 
+                infoStash.Remove(entity);
+                stateStash.Remove(entity);
+            }
+
+            world.Commit();
+        }
+
+        [PublicAPI]
+        public void DestroyAllStates()
+        {
+            if (stateOnlyFilterFilter.IsEmpty())
+            {
+                return;
+            }
+
+            foreach (var entity in stateOnlyFilterFilter)
+            {
                 infoStash.Remove(entity);
                 stateStash.Remove(entity);
             }

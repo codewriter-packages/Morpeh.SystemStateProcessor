@@ -148,31 +148,13 @@ namespace Scellecs.Morpeh.Tests
         }
 
         [Test]
-        public void StateComponentDestroyBeforeStateProcessorDispose_Valid()
+        public void CleanupStateOnProcessorDispose()
         {
+            var cleanupsNum = 0;
+
             var processor = _world.Filter
                 .With<TestComponent>()
-                .ToSystemStateProcessor(NoInit<TestStateComponent>, NoCleanup);
-
-            var testEntity = _world.CreateEntity();
-            testEntity.AddComponent<TestComponent>();
-
-            _world.Commit();
-            processor.Process();
-
-            testEntity.Dispose();
-
-            processor.Dispose();
-
-            Assert.Pass();
-        }
-
-        [Test]
-        public void StateComponentDestroyAfterStateProcessorDispose_Invalid()
-        {
-            var processor = _world.Filter
-                .With<TestComponent>()
-                .ToSystemStateProcessor(NoInit<TestStateComponent>, NoCleanup);
+                .ToSystemStateProcessor(NoInit<TestStateComponent>, Cleanup);
 
             var testEntity = _world.CreateEntity();
             testEntity.AddComponent<TestComponent>();
@@ -181,10 +163,13 @@ namespace Scellecs.Morpeh.Tests
             processor.Process();
             processor.Dispose();
 
-            testEntity.Dispose();
+            Assert.IsFalse(testEntity.Has<TestStateComponent>());
+            Assert.AreEqual(1, cleanupsNum);
 
-            LogAssert.Expect(LogType.Error,
-                "SystemStateComponent TestStateComponent was destroyed after SystemStateProcessor disposing");
+            void Cleanup(ref TestStateComponent state)
+            {
+                cleanupsNum++;
+            }
         }
 
         private static T NoInit<T>(Entity entity) where T : struct
