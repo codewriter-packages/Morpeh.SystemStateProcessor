@@ -1,12 +1,17 @@
+#if UNITY_EDITOR
+#define MORPEH_DEBUG
+#endif
+
 using System;
 using JetBrains.Annotations;
 
 namespace Scellecs.Morpeh
 {
-    public class SystemStateProcessor<TSystemStateComponent> : IDisposable
+    public struct SystemStateProcessor<TSystemStateComponent>
         where TSystemStateComponent : struct, ISystemStateComponent
     {
         internal readonly SetupDelegate setupDelegate;
+        internal readonly DisposeDelegate disposeDelegate;
         internal readonly World world;
 
         internal readonly Filter entitiesWithoutStateFilter;
@@ -19,11 +24,12 @@ namespace Scellecs.Morpeh
 
         public readonly Filter Entities;
 
-        internal SystemStateProcessor(FilterBuilder filter, SetupDelegate setup)
+        internal SystemStateProcessor(FilterBuilder filter, SetupDelegate setup, DisposeDelegate dispose)
         {
             Entities = filter.Build();
 
             setupDelegate = setup;
+            disposeDelegate = dispose;
             world = filter.world;
 
             entitiesWithoutStateFilter = filter.Without<TSystemStateComponent>().Build();
@@ -31,11 +37,38 @@ namespace Scellecs.Morpeh
 
             stateStash = world.GetStash<TSystemStateComponent>();
             infoStash = world.GetStash<Info>();
+
+            frame = 0;
+
+            if (disposeDelegate != null)
+            {
+#if MORPEH_DEBUG
+                if (typeof(IDisposable).IsAssignableFrom(typeof(TSystemStateComponent)))
+                {
+                    var tName = typeof(TSystemStateComponent).Name;
+                    throw new Exception($"{tName} cannot be IDisposable");
+                }
+
+                if (stateStash.componentDispose != null)
+                {
+                    var tName = typeof(TSystemStateComponent).Name;
+                    throw new Exception(
+                        $"Only one instance of DisposableSystemStateProcessor<{tName}> can be created per world");
+                }
+#endif
+
+                stateStash.componentDispose = (ref TSystemStateComponent component) => dispose.Invoke(ref component);
+            }
         }
 
-        public virtual void Dispose()
+        public void Dispose()
         {
             DestroyAllStates();
+
+            if (disposeDelegate != null)
+            {
+                stateStash.componentDispose = null;
+            }
         }
 
         [PublicAPI]
@@ -53,8 +86,7 @@ namespace Scellecs.Morpeh
 
             foreach (var entity in entitiesWithoutStateFilter)
             {
-                var state = setupDelegate.Invoke(entity);
-                stateStash.Set(entity, state);
+                stateStash.Set(entity, setupDelegate.Invoke(entity));
             }
 
             foreach (var entity in stateOnlyFilterFilter)

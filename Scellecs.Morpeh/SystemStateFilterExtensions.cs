@@ -11,9 +11,7 @@ namespace Scellecs.Morpeh
             SystemStateProcessor<TSystemStateComponent>.DisposeDelegate dispose = null)
             where TSystemStateComponent : struct, ISystemStateComponent
         {
-            return dispose != null
-                ? new DisposableSystemStateProcessor<TSystemStateComponent>(filter, setup, dispose)
-                : new SystemStateProcessor<TSystemStateComponent>(filter, setup);
+            return new SystemStateProcessor<TSystemStateComponent>(filter, setup, dispose);
         }
     }
 }
