@@ -9,10 +9,18 @@ namespace Scellecs.Morpeh.Tests
     {
         private World _world;
 
+        private Stash<TestComponent> _testComponentStash;
+        private Stash<KeepAliveComponent> _keepAliveComponentStash;
+        private Stash<TestStateComponent> _testStateComponentStash;
+
         [SetUp]
         public void SetUp()
         {
             _world = World.Create();
+
+            _testComponentStash = _world.GetStash<TestComponent>();
+            _keepAliveComponentStash = _world.GetStash<KeepAliveComponent>();
+            _testStateComponentStash = _world.GetStash<TestStateComponent>();
         }
 
         [TearDown]
@@ -86,7 +94,7 @@ namespace Scellecs.Morpeh.Tests
                 .With<TestComponent>()
                 .ToSystemStateProcessor(Init);
 
-            _world.CreateEntity().AddComponent<TestComponent>();
+            _testComponentStash.Add(_world.CreateEntity());
             _world.Commit();
             processor.Process();
 
@@ -105,13 +113,13 @@ namespace Scellecs.Morpeh.Tests
                 .ToSystemStateProcessor(NoInit<TestStateComponent>, Cleanup);
 
             var testEntity = _world.CreateEntity();
-            testEntity.AddComponent<TestComponent>();
-            testEntity.AddComponent<KeepAliveComponent>();
+            _testComponentStash.Add(testEntity);
+            _keepAliveComponentStash.Add(testEntity);
 
             _world.Commit();
             processor.Process();
 
-            testEntity.RemoveComponent<TestComponent>();
+            _testComponentStash.Remove(testEntity);
 
             _world.Commit();
 
@@ -134,8 +142,8 @@ namespace Scellecs.Morpeh.Tests
                 .ToSystemStateProcessor(NoInit<TestStateComponent>, Cleanup);
 
             var testEntity = _world.CreateEntity();
-            testEntity.AddComponent<TestComponent>();
-            testEntity.AddComponent<KeepAliveComponent>();
+            _testComponentStash.Add(testEntity);
+            _keepAliveComponentStash.Add(testEntity);
 
             _world.Commit();
             processor.Process();
@@ -157,13 +165,13 @@ namespace Scellecs.Morpeh.Tests
                 .ToSystemStateProcessor(NoInit<TestStateComponent>, Cleanup);
 
             var testEntity = _world.CreateEntity();
-            testEntity.AddComponent<TestComponent>();
+            _testComponentStash.Add(testEntity);
 
             _world.Commit();
             processor.Process();
             processor.Dispose();
 
-            Assert.IsFalse(testEntity.Has<TestStateComponent>());
+            Assert.IsFalse(_testStateComponentStash.Has(testEntity));
             Assert.AreEqual(1, cleanupsNum);
 
             void Cleanup(ref TestStateComponent state)
