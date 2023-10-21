@@ -17,12 +17,12 @@ namespace Scellecs.Morpeh
         internal readonly Filter entitiesWithoutStateFilter;
         internal readonly Filter stateOnlyFilterFilter;
 
-        internal readonly Stash<TSystemStateComponent> stateStash;
         internal readonly Stash<Info> infoStash;
 
         internal int frame;
 
         public readonly Filter Entities;
+        public readonly Stash<TSystemStateComponent> States;
 
         internal SystemStateProcessor(FilterBuilder filter, SetupDelegate setup, DisposeDelegate dispose)
         {
@@ -35,7 +35,7 @@ namespace Scellecs.Morpeh
             entitiesWithoutStateFilter = filter.Without<TSystemStateComponent>().Build();
             stateOnlyFilterFilter = world.Filter.With<TSystemStateComponent>().Build();
 
-            stateStash = world.GetStash<TSystemStateComponent>();
+            States = world.GetStash<TSystemStateComponent>();
             infoStash = world.GetStash<Info>();
 
             frame = 0;
@@ -49,7 +49,7 @@ namespace Scellecs.Morpeh
                     throw new Exception($"{tName} cannot be IDisposable");
                 }
 
-                if (stateStash.componentDispose != null)
+                if (States.componentDispose != null)
                 {
                     var tName = typeof(TSystemStateComponent).Name;
                     throw new Exception(
@@ -57,7 +57,7 @@ namespace Scellecs.Morpeh
                 }
 #endif
 
-                stateStash.componentDispose = (ref TSystemStateComponent component) => dispose.Invoke(ref component);
+                States.componentDispose = (ref TSystemStateComponent component) => dispose.Invoke(ref component);
             }
         }
 
@@ -67,7 +67,7 @@ namespace Scellecs.Morpeh
 
             if (disposeDelegate != null)
             {
-                stateStash.componentDispose = null;
+                States.componentDispose = null;
             }
         }
 
@@ -86,7 +86,7 @@ namespace Scellecs.Morpeh
 
             foreach (var entity in entitiesWithoutStateFilter)
             {
-                stateStash.Set(entity, setupDelegate.Invoke(entity));
+                States.Set(entity, setupDelegate.Invoke(entity));
             }
 
             foreach (var entity in stateOnlyFilterFilter)
@@ -99,7 +99,7 @@ namespace Scellecs.Morpeh
                 }
 
                 infoStash.Remove(entity);
-                stateStash.Remove(entity);
+                States.Remove(entity);
             }
 
             world.Commit();
@@ -116,7 +116,7 @@ namespace Scellecs.Morpeh
             foreach (var entity in stateOnlyFilterFilter)
             {
                 infoStash.Remove(entity);
-                stateStash.Remove(entity);
+                States.Remove(entity);
             }
 
             world.Commit();
