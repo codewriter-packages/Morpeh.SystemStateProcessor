@@ -26,14 +26,13 @@ namespace Scellecs.Morpeh
 
         internal SystemStateProcessor(FilterBuilder filter, SetupDelegate setup, DisposeDelegate dispose)
         {
+            stateOnlyFilterFilter = world.Filter.With<TSystemStateComponent>().Build();
+            entitiesWithoutStateFilter = filter.Copy().Without<TSystemStateComponent>().Build();
             Entities = filter.Build();
 
             setupDelegate = setup;
             disposeDelegate = dispose;
             world = filter.world;
-
-            entitiesWithoutStateFilter = filter.Without<TSystemStateComponent>().Build();
-            stateOnlyFilterFilter = world.Filter.With<TSystemStateComponent>().Build();
 
             States = world.GetStash<TSystemStateComponent>();
             infoStash = world.GetStash<Info>();
